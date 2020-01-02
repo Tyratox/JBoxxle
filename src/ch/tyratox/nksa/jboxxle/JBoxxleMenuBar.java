@@ -161,13 +161,6 @@ public class JBoxxleMenuBar extends MenuBar{
 			public void actionPerformed(ActionEvent e) {
 				File f = new File("." + JBoxxle.username + ".save");
 				f.delete();
-				f = new File(".user.name");
-				f.delete();
-				try {
-					JBoxxle.deleteFTPFile("server.tyratox.ch", "jboxxle", "jboxxle", "." + JBoxxle.username + ".save",JBoxxle.username + ".save", "/saves/");
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
 				
 			}
 		});

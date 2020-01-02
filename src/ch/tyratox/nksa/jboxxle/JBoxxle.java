@@ -47,9 +47,7 @@ public class JBoxxle extends Frame{
 	private static final long serialVersionUID = -105248398166837957L;
 	
 	public static String username = "";
-	private static String pw;
-	
-	static FTPClient ftp = null;
+	public static final String PW = "OMG SUCH SECURE!";
 	
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	
@@ -77,7 +75,7 @@ public class JBoxxle extends Frame{
 	
 	public static void main(String[] args) {
 		getUserName();
-		getPassword();
+		
 		//Load Music File
 		new Thread(){
 			public void run(){
@@ -93,34 +91,7 @@ public class JBoxxle extends Frame{
 				}
 			}
 		}.start();
-		//Load user Data
-		System.out.println("Downloading User Data");
-		try {
-			if(downloadFileoverFTP("server.tyratox.ch", "jboxxle", "jboxxle", "." + username + ".save",username + ".save", "/saves/") == true){
-				JOptionPane.showMessageDialog(null, "User Data found and downloaded for User: " + username);
-			}else{
-				JOptionPane.showMessageDialog(null, "No Data found for User: " + username);
-				System.out.println("No User Data Found");
-			}
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-		//Add Shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-		    public void run() {
-		        System.out.println("Uploading Saves to Server");
-		        try {
-		        	System.out.println("Uploading Data");
-					uploadFileoverFTP("server.tyratox.ch", "jboxxle", "jboxxle", "." + username + ".save", username + ".save", "/saves/");
-					
-					player.close();
-					fis.close();
-					bis.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-		    }
-		});
+		
 		new JBoxxle();
 	}
 	
@@ -711,132 +682,8 @@ public class JBoxxle extends Frame{
 		}
 		return list;
 	}
-	public static void uploadFileoverFTP(String host, String user, String pwd, String localFileFullName, String fileName, String hostDir) throws Exception{
-		ftp = new FTPClient();
-        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
-        int reply;
-        ftp.connect(host);
-        reply = ftp.getReplyCode();
-        if (!FTPReply.isPositiveCompletion(reply)) {
-            ftp.disconnect();
-            throw new Exception("Exception in connecting to FTP Server");
-        }
-        ftp.login(user, pwd);
-        ftp.setFileType(FTP.BINARY_FILE_TYPE);
-        ftp.enterLocalPassiveMode();
-        ftp.deleteFile(hostDir + fileName);
-        InputStream inputStream = ftp.retrieveFileStream(hostDir + fileName);
-        int returnCode = ftp.getReplyCode();
-        if (inputStream == null || returnCode == 550) {
-        	if(new File(localFileFullName).exists()){
-	        	try(InputStream input = new FileInputStream(new File(localFileFullName))){
-	                ftp.storeFile(hostDir + fileName, input);
-	            }
-        	}
-        }else{
-        	
-        	try(InputStream input = new FileInputStream(new File(localFileFullName))){
-        		System.out.println("Saving as: " + hostDir + fileName);
-                ftp.storeFile(hostDir + fileName, input);
-            }
-        }
-        
-        if (ftp.isConnected()) {
-            try {
-                ftp.logout();
-                ftp.disconnect();
-            } catch (IOException f) {
-                // do nothing as file is already saved to server
-            }
-        }    
-	}
-	public static void deleteFTPFile(String host, String user, String pwd, String localFileFullName, String fileName, String hostDir) throws Exception{
-		ftp = new FTPClient();
-        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
-        int reply;
-        ftp.connect(host);
-        reply = ftp.getReplyCode();
-        if (!FTPReply.isPositiveCompletion(reply)) {
-            ftp.disconnect();
-            throw new Exception("Exception in connecting to FTP Server");
-        }
-        ftp.login(user, pwd);
-        ftp.setFileType(FTP.BINARY_FILE_TYPE);
-        ftp.enterLocalPassiveMode();
-        
-        InputStream inputStream = ftp.retrieveFileStream(hostDir + fileName);
-        int returnCode = ftp.getReplyCode();
-        System.out.println("Looking for File: " + hostDir + fileName);
-        if (inputStream == null || returnCode == 550) {
-        	//File does not exist
-        	System.out.println("File not found");
-        }else{
-        	//File does exist
-        	System.out.println("File found");
-        	ftp.deleteFile(hostDir + fileName);
-        }
-        
-        
-        if (ftp.isConnected()) {
-            try {
-                ftp.logout();
-                ftp.disconnect();
-            } catch (IOException f) {
-                // do nothing as file is already saved to server
-            }
-        }
-	}
-	public static boolean downloadFileoverFTP(String host, String user, String pwd, String localFileFullName, String fileName, String hostDir) throws Exception{
-		boolean r = false;
-		ftp = new FTPClient();
-        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
-        int reply;
-        ftp.connect(host);
-        reply = ftp.getReplyCode();
-        if (!FTPReply.isPositiveCompletion(reply)) {
-            ftp.disconnect();
-            throw new Exception("Exception in connecting to FTP Server");
-        }
-        ftp.login(user, pwd);
-        ftp.setFileType(FTP.BINARY_FILE_TYPE);
-        ftp.enterLocalPassiveMode();
-        
-        InputStream inputStream = ftp.retrieveFileStream(hostDir + fileName);
-        int returnCode = ftp.getReplyCode();
-        System.out.println("Looking for File: " + hostDir + fileName);
-        if (inputStream == null || returnCode == 550) {
-        	//File does not exist
-        	r = false;
-        	System.out.println("File not found");
-        }else{
-        	//File does exist
-        	System.out.println("File found");
-        	r = true;
-        	OutputStream os = new FileOutputStream(localFileFullName);
-        	byte[] buffer = new byte[1024];
-            int bytesRead;
-            //read from is to buffer
-            while((bytesRead = inputStream.read(buffer)) !=-1){
-                os.write(buffer, 0, bytesRead);
-            }
-            inputStream.close();
-            //flush OutputStream to write any buffered data to file
-            os.flush();
-            os.close();
-        	System.out.println("Downloaded to: " + localFileFullName);
-        }
-        
-        
-        if (ftp.isConnected()) {
-            try {
-                ftp.logout();
-                ftp.disconnect();
-            } catch (IOException f) {
-                // do nothing as file is already saved to server
-            }
-        }
-        return r;
-	}
+	
+	
 	public static void getUserName(){
 		if(new File(".user.name").exists()){
 			try {
@@ -876,25 +723,7 @@ public class JBoxxle extends Frame{
 			}
 		}
 	}
-	private static void getPassword(){
-		JPanel panel = new JPanel();
-		JPasswordField pass = new JPasswordField(16);
-		panel.add(pass);
-		String[] options = new String[]{"Continue", "Exit"};
-		int option = JOptionPane.showOptionDialog(null, panel, "Please enter your Password",
-		                         JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-		                         null, options, options[0]);
-		if(option == 0) // pressing OK button
-		{
-		    char[] password = pass.getPassword();
-		    pw = new String(password);
-		    while(pw.length() != 16){
-		    	pw = pw + "_";
-		    }
-		}else{
-			System.exit(0);
-		}
-	}
+	
 	public void saveDoneLevels(){
 		System.out.println("Saving solved levels to file...");
     	File f = new File("." + username + ".save");
@@ -909,7 +738,7 @@ public class JBoxxle extends Frame{
     	}
     	InputStream is = null;
 		try {
-			is = new ByteArrayInputStream(JBoxxleCrypt.encrypt(c, pw).getBytes());
+			is = new ByteArrayInputStream(JBoxxleCrypt.encrypt(c, PW).getBytes());
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -946,7 +775,7 @@ public class JBoxxle extends Frame{
 							}
 						}
 						bf.close();
-						String[] ss = JBoxxleCrypt.decrypt(everything, pw).split(ls);
+						String[] ss = JBoxxleCrypt.decrypt(everything, PW).split(ls);
 						for(int i = 0;i<ss.length;i++){
 							levelsDone.add(ss[i]);
 							System.out.println("Solved Level: " + ss[i]);
